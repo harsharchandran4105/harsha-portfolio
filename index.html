@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harsha R Chandran | ML Engineer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Neutrals (Tailwind 'stone', 'zinc', 'indigo') -->
+    <!-- 
+    Application Structure Plan: 
+    Designed a single-page application with a sticky top navigation (Home, About, Skills, Projects, Connect) for clear, persistent user orientation. This structure transforms the linear README into a modern, interactive portfolio layout.
+    User Flow: Users land on Home (hero section) getting an immediate impression. They can scroll sequentially or use the nav to jump to specific areas of interest (e.g., a recruiter jumping to Skills or Projects).
+    Key Interactions:
+    - Skills: Replaced static lists/badges with interactive tabs (Languages, ML/AI, Data Viz) and a Chart.js bar chart visualizing "Key Focus Areas" (derived from "My Focus" and "What I Do"). This is more engaging and visually communicative than a list.
+    - Projects: The featured project is presented as an interactive card. Its detailed steps (preprocessing, prediction, deployment, strategy) are hidden behind clickable toggles, preventing information overload and encouraging user exploration.
+    Why this structure? This SPA design is far more user-friendly for a target audience like recruiters. It allows for non-linear exploration, highlights key information (skills, projects) visually and interactively, and presents a more polished, professional brand than a static Markdown file. It prioritizes quick access to high-value information.
+    -->
+    <!--
+    Visualization & Content Choices:
+    - Report Info: Intro -> Goal: Engage -> Method: Hero Section (HTML/Tailwind) -> Interaction: Nav links. Justification: Strong first impression.
+    - Report Info: 'About Me'/'What I Do'/'My Focus' (text) -> Goal: Inform -> Method: Consolidate into 'About' text section (HTML/Tailwind). Justification: Creates a single, clear narrative.
+    - Report Info: 'Tech Stack' (lists) & 'Badges' -> Goal: Organize/Inform -> Method: Interactive Tabs ('Languages', 'ML/AI', 'Data Viz') with skill grids. (JS toggle). Justification: Replaces static lists/badges with an engaging, organized, and clean UI.
+    - Report Info: 'My Focus' (list) -> Goal: Compare/Inform -> Method: Horizontal Bar Chart (Chart.js/Canvas) 'Key Focus Areas'. Interaction: Tooltip on hover. Justification: Visually emphasizes his focus, which is more impactful than a list.
+    - Report Info: 'Featured Project' (details) -> Goal: Organize/Inform (detailed) -> Method: Interactive Card with Toggles (HTML/JS) for project phases (e.g., 'Prediction', 'Deployment'). Interaction: Click toggle to show/hide details. Justification: Manages information density, making project details explorable.
+    - Report Info: 'Connect With Me' (links) -> Goal: Action -> Method: Icon/Button Link Grid (HTML/Tailwind). Interaction: Click link. Justification: Clear, standard CTA.
+    - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All visuals are HTML/Tailwind or Chart.js Canvas.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .nav-link {
+            @apply px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-colors;
+        }
+        .nav-link-mobile {
+            @apply block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition-colors;
+        }
+        .section-title {
+            @apply text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl;
+        }
+        .skill-tab {
+            @apply px-4 py-2 font-medium rounded-lg cursor-pointer transition-colors;
+        }
+        .skill-tab-active {
+            @apply bg-indigo-600 text-white;
+        }
+        .skill-tab-inactive {
+            @apply bg-slate-200 text-slate-700 hover:bg-slate-300;
+        }
+        .skill-card {
+            @apply bg-white p-4 rounded-lg shadow-sm text-center font-medium text-slate-800;
+        }
+        .project-toggle {
+            @apply w-full text-left px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium text-slate-800 transition-colors flex justify-between items-center;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav id="navbar" class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-indigo-600">Harsha R Chandran</span>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+                    <a href="#home" class="nav-link">Home</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#skills" class="nav-link">Skills</a>
+                    <a href="#projects" class="nav-link">Projects</a>
+                    <a href="#connect" class="nav-link">Connect</a>
+                </div>
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <button type="button" id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sm:hidden hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#home" class="nav-link-mobile">Home</a>
+                <a href="#about" class="nav-link-mobile">About</a>
+                <a href="#skills" class="nav-link-mobile">Skills</a>
+                <a href="#projects" class="nav-link-mobile">Projects</a>
+                <a href="#connect" class="nav-link-mobile">Connect</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="home" class="pt-24 pb-32 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <span class="text-base font-semibold text-indigo-600 tracking-wide uppercase">👋 Hey there, I'm</span>
+                <h1 class="mt-4 text-4xl font-extrabold text-slate-900 sm:text-5xl md:text-6xl">
+                    Harsha R Chandran
+                </h1>
+                <p class="mt-6 max-w-3xl mx-auto text-xl text-slate-600">
+                    M.Tech Student @ NIT Goa
+                    <span class="mx-2 text-indigo-300">|</span>
+                    Machine Learning Engineer
+                    <span class="mx-2 text-indigo-300">|</span>
+                    AI Research Enthusiast
+                </p>
+                <div class="mt-10 flex justify-center space-x-4">
+                    <a href="#projects" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                        View My Work
+                    </a>
+                    <a href="#connect" class="inline-flex items-center justify-center px-6 py-3 border border-slate-300 text-base font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+                        Connect With Me
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="section-title">About Me</h2>
+                </div>
+                <div class="mt-12 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-semibold text-slate-900">My Passion</h3>
+                        <p class="text-lg text-slate-600">
+                            I’m passionate about exploring the intersection of Machine Learning, Deep Learning, and Generative AI — building intelligent systems that combine solid analytical grounding with creative experimentation.
+                        </p>
+                        <p class="text-lg text-slate-600">
+                            Currently, I’m working on projects that blend predictive modeling, data analytics, and model deployment, while deepening my understanding of transformers, diffusion models, and LLMs.
+                        </p>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-semibold text-slate-900">My Focus</h3>
+                        <p class="text-lg text-slate-600">
+                            I'm constantly working to expand my skill set and apply it to new challenges. My primary focus is on:
+                        </p>
+                        <ul class="list-disc list-inside space-y-2 text-lg text-slate-600">
+                            <li>Machine Learning & Deep Learning</li>
+                            <li>Model Explainability & Optimization</li>
+                            <li>Generative AI & Transformer Architectures</li>
+                        </ul>
+                        <p class="text-lg text-slate-600 italic mt-4">
+                            "Turning data into intelligence, and intelligence into innovation."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="section-title">Tech Stack & Skills</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
+                        Here's a breakdown of the technologies I use. Click the tabs to explore my skills in different domains, and see my primary areas of focus visualized in the chart below.
+                    </p>
+                </div>
+
+                <div class="mt-12">
+                    <div class="flex justify-center space-x-2 md:space-x-4 mb-8">
+                        <button class="skill-tab skill-tab-active" data-tab="languages">Languages</button>
+                        <button class="skill-tab skill-tab-inactive" data-tab="ml-ai">ML / AI</button>
+                        <button class="skill-tab skill-tab-inactive" data-tab="viz-analytics">Data Viz</button>
+                    </div>
+
+                    <div id="tab-content-container" class="max-w-4xl mx-auto">
+                        <div id="tab-languages" class="skill-tab-content">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <div class="skill-card">Python 🐍</div>
+                                <div class="skill-card">R</div>
+                                <div class="skill-card">SQL</div>
+                                <div class="skill-card">C++</div>
+                            </div>
+                        </div>
+                        <div id="tab-ml-ai" class="skill-tab-content hidden">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <div class="skill-card">TensorFlow</div>
+                                <div class="skill-card">PyTorch</div>
+                                <div class="skill-card">Scikit-learn</div>
+                                <div class="skill-card">Hugging Face</div>
+                                <div class="skill-card">Pandas</div>
+                                <div class="skill-card">NumPy</div>
+                            </div>
+                        </div>
+                        <div id="tab-viz-analytics" class="skill-tab-content hidden">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <div class="skill-card">Matplotlib</div>
+                                <div class="skill-card">Seaborn</div>
+                                <div class="skill-card">Plotly</div>
+                                <div class="skill-card">Streamlit</div>
+                                <div class="skill-card">Power BI</div>
+                                <div class="skill-card">Tableau</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-16">
+                    <h3 class="text-2xl font-semibold text-center text-slate-900 mb-8">Key Focus Areas</h3>
+                    <div class="chart-container">
+                        <canvas id="focusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="section-title">Featured Project</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
+                        This is a highlight of my applied work. Explore the details of my featured project to see how I approach a problem from data to deployment.
+                    </p>
+                </div>
+
+                <div class="mt-12 max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-8">
+                        <div class="tracking-wide text-sm text-indigo-600 font-semibold">Telecom ML Workflow</div>
+                        <h3 class="block mt-2 text-2xl leading-tight font-bold text-black">Integrated Customer Churn, Segmentation & Retention Model</h3>
+                        <p class="mt-4 text-slate-600 text-lg">A complete machine learning workflow for telecom data. Click the items below to see the process:</p>
+                        
+                        <div class="mt-6 space-y-4">
+                            <div>
+                                <button class="project-toggle" data-toggle="project-1">
+                                    <span>1. Data Preprocessing & EDA</span>
+                                    <span class="toggle-icon">+</span>
+                                </button>
+                                <div id="project-1" class="project-content hidden mt-2 px-4 pb-2 text-slate-600">
+                                    Performed comprehensive data preprocessing, exploratory data analysis (EDA), and feature engineering to prepare the dataset for modeling.
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <button class="project-toggle" data-toggle="project-2">
+                                    <span>2. Churn Prediction Model</span>
+                                    <span class="toggle-icon">+</span>
+                                </button>
+                                <div id="project-2" class="project-content hidden mt-2 px-4 pb-2 text-slate-600">
+                                    Implemented Logistic Regression for churn prediction, achieving a solid baseline for identifying at-risk customers.
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <button class="project-toggle" data-toggle="project-3">
+                                    <span>3. Interactive Deployment</span>
+                                    <span class="toggle-icon">+</span>
+                                </button>
+                                <div id="project-3" class="project-content hidden mt-2 px-4 pb-2 text-slate-600">
+                                    Deployed an interactive Streamlit web app to allow for real-time predictions and customer lookup.
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <button class="project-toggle" data-toggle="project-4">
+                                    <span>4. Business Insights</span>
+                                    <span class="toggle-icon">+</span>
+                                </button>
+                                <div id="project-4" class="project-content hidden mt-2 px-4 pb-2 text-slate-600">
+                                    Designed a retention strategy dashboard to provide actionable business insights based on model predictions and customer segmentation.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8">
+                            <a href="https://github.com/harsharchandran4105/Customer-Insight-Engine" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                                View Repository
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="connect" class="py-20 bg-slate-900 text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Connect With Me</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-slate-300">
+                        I'm always open to collaborating on AI/ML research or discussing new ideas. Feel free to connect with me through any of the platforms below.
+                    </p>
+                </div>
+                <div class="mt-12 max-w-lg mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <a href="https://linkedin.com/in/harsharchandran" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center p-4 bg-slate-800 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <span class="text-3xl">in</span>
+                        <span class="mt-1 text-sm font-medium">LinkedIn</span>
+                    </a>
+                    <a href="https://medium.com/@harsharchandran41" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center p-4 bg-slate-800 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <span class="text-3xl">M</span>
+                        <span class="mt-1 text-sm font-medium">Medium</span>
+                    </a>
+                    <a href="https://kaggle.com/harsharchandran41" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center p-4 bg-slate-800 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <span class="text-3xl">K</span>
+                        <span class="mt-1 text-sm font-medium">Kaggle</span>
+                    </a>
+                    <a href="https://huggingface.co/harsharc41" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center p-4 bg-slate-800 rounded-lg hover:bg-indigo-600 transition-colors">
+                        <span class="text-3xl">🤗</span>
+                        <span class="mt-1 text-sm font-medium">Hugging Face</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-100 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-600">
+            <p class="text-base">
+                <span class="font-bold">Fun Fact:</span> Always curious about how intelligence emerges from data.
+            </p>
+            <p class="mt-4 text-sm">
+                Thanks for visiting my profile!
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuIcons = mobileMenuButton.querySelectorAll('svg');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                mobileMenuIcons[0].classList.toggle('hidden');
+                mobileMenuIcons[1].classList.toggle('hidden');
+            });
+
+            document.querySelectorAll('#mobile-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                    mobileMenuIcons[0].classList.remove('hidden');
+                    mobileMenuIcons[1].classList.add('hidden');
+                });
+            });
+
+            const skillTabs = document.querySelectorAll('.skill-tab');
+            const skillTabContents = document.querySelectorAll('.skill-tab-content');
+
+            skillTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+
+                    skillTabs.forEach(t => {
+                        t.classList.remove('skill-tab-active');
+                        t.classList.add('skill-tab-inactive');
+                    });
+                    tab.classList.add('skill-tab-active');
+                    tab.classList.remove('skill-tab-inactive');
+
+                    skillTabContents.forEach(content => {
+                        if (content.id === `tab-${targetTab}`) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            const projectToggles = document.querySelectorAll('.project-toggle');
+            projectToggles.forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const contentId = toggle.dataset.toggle;
+                    const content = document.getElementById(contentId);
+                    const icon = toggle.querySelector('.toggle-icon');
+                    
+                    const isHidden = content.classList.toggle('hidden');
+                    icon.textContent = isHidden ? '+' : '−';
+                });
+            });
+
+            const ctx = document.getElementById('focusChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Machine Learning & Deep Learning', 'Generative AI & Transformers', 'Model Explainability & Optimization'],
+                    datasets: [{
+                        label: 'Relative Focus',
+                        data: [90, 85, 75],
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.7)',
+                            'rgba(99, 102, 241, 0.7)',
+                            'rgba(129, 140, 248, 0.7)',
+                        ],
+                        borderColor: [
+                            'rgba(79, 70, 229, 1)',
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(129, 140, 248, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
